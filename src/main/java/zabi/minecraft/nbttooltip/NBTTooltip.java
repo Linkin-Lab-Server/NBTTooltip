@@ -12,13 +12,13 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.item.TooltipContext;
-import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.toast.SystemToast;
 import net.minecraft.client.toast.SystemToast.Type;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
@@ -111,7 +111,7 @@ public class NBTTooltip implements ClientModInitializer {
 	}
 
 	private static boolean isPressed(MinecraftClient mc, KeyBinding key) {
-		return !key.isUnbound() && InputUtil.isKeyPressed(mc.getWindow().getHandle(), InputUtil.fromTranslationKey(key.getBoundKeyTranslationKey()).getCode());
+		return !key.isNotBound() && InputUtil.isKeyPressed(mc.getWindow().getHandle(), InputUtil.fromName(key.getName()).getKeyCode());
 	}
 
 	public static ArrayList<Text> transformTtip(ArrayList<Text> ttip, int lines) {
@@ -148,7 +148,7 @@ public class NBTTooltip implements ClientModInitializer {
 			} else {
 				list.add(new LiteralText(""));
 			}
-			NbtCompound tag = stack.getNbt();
+			CompoundTag tag = stack.getTag();
 			ArrayList<Text> ttip = new ArrayList<>(lines);
 			if (tag!=null) {
 				if (ModConfig.INSTANCE.showDelimiters) {
@@ -188,7 +188,7 @@ public class NBTTooltip implements ClientModInitializer {
 		StringBuilder sb = new StringBuilder();
 		String name = I18n.translate(stack.getTranslationKey());
 		ArrayList<Text> nbtData = new ArrayList<>();
-		getCopyingEngine().parseTagToList(nbtData, stack.getNbt(), false);
+		getCopyingEngine().parseTagToList(nbtData, stack.getTag(), false);
 		nbtData.forEach(t -> {
 			sb.append(t.asString().replaceAll("§[0-9a-gk-or]", ""));
 			sb.append("\n");

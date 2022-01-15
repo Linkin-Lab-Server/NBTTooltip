@@ -1,8 +1,8 @@
 package zabi.minecraft.nbttooltip.parse_engine;
 
-import net.minecraft.nbt.AbstractNbtList;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.AbstractListTag;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
@@ -22,7 +22,7 @@ public class ColoredHumanReadableParser implements NbtTagParser {
 	private static final Formatting TAGNAME = Formatting.GOLD;
 
 	@Override
-	public void parseTagToList(List<Text> list, @Nullable NbtElement tag, boolean split) {
+	public void parseTagToList(List<Text> list, @Nullable Tag tag, boolean split) {
 		if (tag == null) {
 			list.add(new LiteralText("No NBT tag").formatted(Formatting.DARK_GRAY));
 		} else {
@@ -30,20 +30,20 @@ public class ColoredHumanReadableParser implements NbtTagParser {
 		}
 	}
 	
-	private void unwrapTag(List<Text> tooltip, NbtElement base, String pad, String tagName, String padIncrement, boolean splitLongStrings) {
-		if (base instanceof NbtCompound) {
+	private void unwrapTag(List<Text> tooltip, Tag base, String pad, String tagName, String padIncrement, boolean splitLongStrings) {
+		if (base instanceof CompoundTag) {
 			addCompoundToTooltip(tooltip, base, pad, padIncrement, splitLongStrings);
-		} else if (base instanceof AbstractNbtList) {
+		} else if (base instanceof AbstractListTag) {
 			addListToTooltip(tooltip, base, pad, padIncrement, splitLongStrings);
 		} else {
 			addValueToTooltip(tooltip, base, new LiteralText(tagName).formatted(TAGNAME), pad, splitLongStrings);
 		}
 	}
 	
-	private void addCompoundToTooltip(List<Text> tooltip, NbtElement base, String pad, String padIncrement, boolean splitLongStrings) {
-		NbtCompound tag = (NbtCompound) base;
+	private void addCompoundToTooltip(List<Text> tooltip, Tag base, String pad, String padIncrement, boolean splitLongStrings) {
+		CompoundTag tag = (CompoundTag) base;
 		tag.getKeys().forEach(s -> {
-			boolean nested = (tag.get(s) instanceof AbstractNbtList) || (tag.get(s) instanceof NbtCompound);
+			boolean nested = (tag.get(s) instanceof AbstractListTag) || (tag.get(s) instanceof CompoundTag);
 			if (nested) {
 				Text subtreeName = new LiteralText(s).formatted(TAGNAME);
 				Text intro = new TranslatableText("%s%s%s", pad, subtreeName, new LiteralText(": {").formatted(STRUCTURE));
@@ -56,11 +56,11 @@ public class ColoredHumanReadableParser implements NbtTagParser {
 		});
 	}
 	
-	private void addListToTooltip(List<Text> tooltip, NbtElement base, String pad, String padIncrement, boolean splitLongStrings) {
-		AbstractNbtList<?> tag = (AbstractNbtList<?>) base;
+	private void addListToTooltip(List<Text> tooltip, Tag base, String pad, String padIncrement, boolean splitLongStrings) {
+		AbstractListTag<?> tag = (AbstractListTag<?>) base;
 		int index = 0;
-		for (NbtElement nbtnext : tag) {
-			if (nbtnext instanceof AbstractNbtList || nbtnext instanceof NbtCompound) {
+		for (Tag nbtnext : tag) {
+			if (nbtnext instanceof AbstractListTag || nbtnext instanceof CompoundTag) {
 				tooltip.add(new TranslatableText("%s [%s]: {", pad, new LiteralText("" + index).formatted(LISTINDEX)).formatted(STRUCTURE));
 				unwrapTag(tooltip, nbtnext, pad + padIncrement, "", padIncrement, splitLongStrings);
 				tooltip.add(new LiteralText(pad + "}").formatted(STRUCTURE));
@@ -72,7 +72,7 @@ public class ColoredHumanReadableParser implements NbtTagParser {
 		}
 	}
 	
-	private static void addValueToTooltip(List<Text> tooltip, NbtElement nbt, Text name, String pad, boolean splitLongStrings) {
+	private static void addValueToTooltip(List<Text> tooltip, Tag nbt, Text name, String pad, boolean splitLongStrings) {
 		String toBeAdded = nbt.toString();
 		if (!splitLongStrings || toBeAdded.length() < line_split_threshold) {
 			tooltip.add(new TranslatableText(pad+"%s: %s", name, new LiteralText(nbt.toString()).formatted(STRING)));
